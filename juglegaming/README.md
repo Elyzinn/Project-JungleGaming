@@ -35,10 +35,36 @@ Os valores padrão são somente para desenvolvimento local. Podem ser alterados
 por variáveis de ambiente `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
 e `POSTGRES_PORT`.
 
-## Testes do domínio
+## Migrations
 
-Os testes unitários usam o test runner nativo do Node.js:
+O projeto usa MikroORM com PostgreSQL. Com o serviço do Compose ativo, aplique
+as migrations versionadas:
 
 ```sh
-npm test
+bun run db:migrate
+bun run db:migrate:status
+```
+
+Para reverter a migration mais recente:
+
+```sh
+bun run db:migrate:down
+```
+
+Reverter a migration inicial remove as tabelas financeiras e seus dados. Para
+usar outra conexão, defina `DATABASE_URL`.
+
+Com o PostgreSQL ativo e as migrations aplicadas, os testes de constraints e
+triggers podem ser executados com:
+
+```sh
+bun run test:database
+```
+
+## Testes do domínio
+
+Os testes unitários do domínio usam o test runner do Bun:
+
+```sh
+bun run test
 ```

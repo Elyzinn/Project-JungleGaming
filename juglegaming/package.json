@@ -7,14 +7,23 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test"
+    "test": "bun test test/domain/*.test.mjs",
+    "test:database": "bun test test/database/*.test.mjs",
+    "db:migrate": "mikro-orm migration:up",
+    "db:migrate:down": "mikro-orm migration:down",
+    "db:migrate:status": "mikro-orm migration:list",
+    "db:migrate:pending": "mikro-orm migration:pending"
   },
   "dependencies": {
+    "@mikro-orm/core": "^7.2.10",
+    "@mikro-orm/migrations": "^7.2.10",
+    "@mikro-orm/postgresql": "^7.2.10",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@mikro-orm/cli": "^7.2.10",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -22,6 +31,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

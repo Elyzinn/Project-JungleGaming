@@ -17,6 +17,7 @@ export interface CreateLedgerEntryProps {
   readonly money: Money;
   readonly balanceBefore: Money;
   readonly balanceAfter: Money;
+  readonly walletVersion: number;
   readonly createdAt?: Date;
 }
 
@@ -35,6 +36,7 @@ export class WalletLedgerEntry {
   readonly money: Money;
   readonly balanceBefore: Money;
   readonly balanceAfter: Money;
+  readonly walletVersion: number;
   private readonly createdAtValue: Date;
 
   private constructor(props: CreateLedgerEntryProps, createdAt: Date) {
@@ -45,6 +47,7 @@ export class WalletLedgerEntry {
     this.money = props.money;
     this.balanceBefore = props.balanceBefore;
     this.balanceAfter = props.balanceAfter;
+    this.walletVersion = props.walletVersion;
     this.createdAtValue = new Date(createdAt.getTime());
     Object.freeze(this);
   }
@@ -94,6 +97,8 @@ export class WalletLedgerEntry {
       !(state.money instanceof Money) ||
       !(state.balanceBefore instanceof Money) ||
       !(state.balanceAfter instanceof Money) ||
+      !Number.isSafeInteger(state.walletVersion) ||
+      state.walletVersion < 1 ||
       !WalletLedgerEntry.isValidDate(state.createdAt)
     ) {
       throw new InvalidLedgerEntryError("Ledger entry contains invalid fields.");

@@ -7,17 +7,37 @@
   com um PostgreSQL já usando `5432` neste ambiente; pode ser configurada.
 - O volume nomeado `postgres_data` preserva os dados entre reinicializações.
 - O Compose verifica a prontidão com `pg_isready`.
-- O banco começa sem tabelas de domínio. O schema financeiro e suas migrations
-  serão definidos junto com o modelo de domínio e a camada de persistência.
+- O schema financeiro é criado e removido por migrations versionadas do
+  MikroORM; não usar `schema:update` como substituto das migrations.
 - As credenciais padrão são exclusivas para desenvolvimento local e podem ser
   substituídas pelas variáveis de ambiente documentadas no README.
+
+## Persistência
+
+- MikroORM 7 com o driver PostgreSQL foi escolhido; o `Money` é persistido como
+  `numeric(38, 2)` exato e lido pelo ORM como string, junto com a moeda.
+- A migration inicial cria `wallets`, `wager_transactions` e `wallet_ledger`,
+  incluindo chaves estrangeiras compostas, índices de idempotência e reversão,
+  checks de saldo/aritmética e triggers de integridade.
+- O banco impede alterações e exclusões de ledger, inclusive `TRUNCATE`. Um
+  trigger diferido também exige que as transações processadas e o saldo/version
+  da wallet correspondam aos lançamentos confirmados na mesma transação SQL.
+- A idempotência é única por `(provider_id, idempotency_key)`; o identificador
+  externo também é único por provider. Só uma wallet por
+  `(player_id, currency)` é permitida.
+- A unidade de concorrência é a wallet: a camada de aplicação inicia uma
+  transação MikroORM e adquire `PESSIMISTIC_WRITE` somente na linha daquela
+  wallet. Movimentações de wallets distintas não compartilham lock global.
+  Lança-se o ledger antes de atualizar saldo/version, dentro da mesma
+  transação; triggers e constraints validam o resultado no commit.
 
 ## Aplicação
 
 O projeto existente é uma aplicação Next.js. O roteiro descreve um serviço
 backend NestJS; essa migração não é feita nesta etapa para não substituir a
-estrutura atual sem uma decisão explícita. A separação das camadas backend e a
-escolha de persistência ficam para a implementação dessas etapas.
+estrutura atual sem uma decisão explícita. A persistência financeira usa
+MikroORM e PostgreSQL; os casos de uso e a API financeira ainda serão
+implementados na etapa seguinte.
 
 ## Domínio financeiro
 
@@ -39,4 +59,5 @@ escolha de persistência ficam para a implementação dessas etapas.
 - `REFUND` e `ROLLBACK` exigem referência. Validações envolvendo o histórico de
   reversões e unicidade dependem da persistência e serão implementadas nas
   etapas seguintes.
-- Os testes são executados com `npm test` e usam o runner nativo do Node.js.
+- Os testes são executados com Bun (`bun run test`); os testes de PostgreSQL
+  usam `bun run test:database` e exigem serviço/migrations ativos.

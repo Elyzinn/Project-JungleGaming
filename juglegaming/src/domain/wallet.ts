@@ -181,6 +181,7 @@ export class Wallet {
       money: props.money,
       balanceBefore,
       balanceAfter,
+      walletVersion: this._version + 1,
       createdAt: at,
     });
 
